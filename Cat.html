@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caring for Whiskers</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #egg {
+            width: 220px;
+            height: 300px;
+            background-color: #f3e5ab;
+            border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 30px auto;
+        }
+
+        #pet {
+            font-size: 24px;
+            animation: idleSway 3s infinite;
+        }
+
+        @keyframes idleSway {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(15px);
+            }
+        }
+
+        @keyframes concentratingShake {
+            0%, 100% {
+                transform: rotate(0);
+            }
+            25% {
+                transform: rotate(-5deg);
+            }
+            50% {
+                transform: rotate(0);
+            }
+            75% {
+                transform: rotate(5deg);
+            }
+        }
+
+        #food {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: row;
+            gap: 5px;
+        }
+
+        .food-ball {
+            width: 8px;
+            height: 8px;
+            background-color: #654321;
+            border-radius: 50%;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 16px;
+            border: none;
+            background-color: white;
+            color: black;
+            cursor: pointer;
+        }
+
+        #poop {
+            position: absolute;
+            bottom: 10px;
+            display: none;
+        }
+
+        @keyframes playJump {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            25%, 75% {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="egg">
+        <div id="pet">🐱</div>
+        <div id="poop">💩</div>
+        <div id="food">
+            <div class="food-ball"></div>
+            <div class="food-ball"></div>
+            <div class="food-ball"></div>
+        </div>
+    </div>
+    <button onclick="feedPet()">Feed</button>
+    <button onclick="playWithPet()">Play</button>
+    <button onclick="toggleLights()">Lights</button>
+    <button onclick="sleepPet()">Sleep</button>
+    <button onclick="cleanLitter()">Clean</button>
+    <div id="status"></div>
+
+    <script>
+        let hunger = 0; // 0 means not hungry, 100 means very hungry
+        let happiness = 5;
+        let health = 10;
+        let poop = false;
+        let lightsOn = true;
+        let sick = false;
+        let actingOut = false;
+
+        function updateStatus() {
+            const petDiv = document.getElementById('pet');
+
+            if (!lightsOn) {
+                document.body.style.backgroundColor = 'black';
+                petDiv.innerText = '😴';
+            } else {
+                document.body.style.backgroundColor = 'white';
+                if (sick) {
+                    petDiv.innerText = '🤒';
+                } else if (actingOut) {
+                    petDiv.innerText = '😾';
+                } else if (hunger >= 80) {
+                    petDiv.innerText = '😣';
+                } else {
+                    petDiv.innerText = '🐱';
+                }
+            }
+
+            if (poop) {
+                document.getElementById('poop').style.display = 'block';
+            } else {
+                document.getElementById('poop').style.display = 'none';
+            }
+        }
+
+        function feedPet() {
+            hunger -= 10;
+            if (hunger < 0) hunger = 0;
+
+            const foodDivs = document.querySelectorAll('.food-ball');
+            document.getElementById('food').style.display = 'flex';
+
+            foodDivs.forEach((food, index) => {
+                setTimeout(() => {
+                    food.style.display = 'none';
+                }, index * 500);
+            });
+
+            setTimeout(() => {
+                document.getElementById('food').style.display = 'none';
+                foodDivs.forEach(food => {
+                    food.style.display = 'block';
+                });
+            }, 1500);
+
+            updateStatus();
+        }
+
+        function toggleLights() {
+            lightsOn = !lightsOn;
+            updateStatus();
+        }
+
+        // Add other functions here...
+
+        setInterval(function () {
+            if (lightsOn) {
+                hunger += 10;
+                if (hunger > 100) hunger = 100;
+                updateStatus();
+            }
+        }, 60000);
+    </script>
+</body>
+
+</html>
