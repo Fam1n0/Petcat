@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whiskers the Gigapet</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #egg {
+            width: 220px;
+            height: 300px;
+            background-color: #f3e5ab;
+            border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 30px auto;
+        }
+
+        #pet {
+            font-size: 24px;
+            animation: idleSway 3s infinite;
+        }
+
+        @keyframes idleSway {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(15px);
+            }
+        }
+
+        @keyframes concentratingShake {
+            0%, 100% {
+                transform: rotate(0);
+            }
+            25% {
+                transform: rotate(-5deg);
+            }
+            50% {
+                transform: rotate(0);
+            }
+            75% {
+                transform: rotate(5deg);
+            }
+        }
+
+        #food {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: row;
+            gap: 5px;
+        }
+
+        .food-ball {
+            width: 8px;
+            height: 8px;
+            background-color: #654321;
+            border-radius: 50%;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 16px;
+            border: none;
+            background-color: white;
+            color: black;
+            cursor: pointer;
+        }
+
+        #poop {
+            position: absolute;
+            bottom: 10px;
+            display: none;
+        }
+
+        @keyframes playJump {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            25%, 75% {
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="egg">
+        <div id="pet">🐱</div>
+        <div id="poop">💩</div>
+        <div id="food">
+            <div class="food-ball"></div>
+            <div class="food-ball"></div>
+            <div class="food-ball"></div>
+        </div>
+    </div>
+    <button onclick="feedPet()">Feed</button>
+    <button onclick="playWithPet()">Play</button>
+    <button onclick="sleepPet()">Sleep</button>
+    <button onclick="cleanLitter()">Clean</button>
+    <div id="status"></div>
+
+    <script>
+        let hunger = 5;
+        let happiness = 5;
+        let health = 10;
+        let poop = false;
+
+        function updateStatus() {
+            const petDiv = document.getElementById('pet');
+            const statusDiv = document.getElementById('status');
+            const poopDiv = document.getElementById('poop');
+
+            petDiv.style.animation = 'idleSway 3s infinite'; // Default idle animation
+
+            if (hunger <= 0) {
+                petDiv.innerText = '😿';
+            } else if (happiness <= 2) {
+                petDiv.innerText = '😒'; // Bored face
+            } else if (poop && happiness <= 4) {
+                petDiv.innerText = '😾';
+            } else {
+                petDiv.innerText = '🐱';
+            }
+
+            if (poop) {
+                poopDiv.style.display = 'block'; // Display poop if it exists
+            } else {
+                poopDiv.style.display = 'none'; // Hide poop if it doesn't exist
+            }
+
+            statusDiv.innerHTML = `Health: ${health}<br>Hunger: ${hunger}<br>Happiness: ${happiness}`;
+
+            if (hunger <= 0 || happiness <= 0 || health <= 0) {
+                alert("Whiskers is unhappy! Please take care of him.");
+            }
+        }
+
+        function feedPet() {
+            const petDiv = document.getElementById('pet');
+            const foodDivs = document.querySelectorAll('.food-ball');
+            document.getElementById('food').style.display = 'flex';
+            hunger += 2;
+
+            foodDivs.forEach((food, index) => {
+                setTimeout(() => {
+                    food.style.display = 'none';
+                }, index * 500); // Makes food disappear with 0.5s intervals
+            });
+
+            setTimeout(() => {
+                document.getElementById('food').style.display = 'none';
+                foodDivs.forEach(food => food.style.display = 'block'); // Reset food for next time
+            }, 1500);
+
+            if (hunger >= 10) {
+                petDiv.innerText = '😣';  // Concentrating face
+                petDiv.style.animation = 'concentratingShake 0.2s 10';  // Concentrating shake
+
+                setTimeout(() => {
+                    poop = true;
+                    petDiv.style.animation = ''; // Remove the shake animation after poop
+                    updateStatus();
+                }, 2000);  // 2 seconds of concentrating before poop appears
+            } else {
+                updateStatus();
+            }
+        }
+
+        function playWithPet() {
+            const petDiv = document.getElementById('pet');
+            happiness += 2;
+            if (happiness > 10) happiness = 10;
+
+            petDiv.style.animation = 'playJump 0.5s 4';
+            setTimeout(() => {
+                petDiv.style.animation = 'idleSway 3s infinite'; // Return to idle animation
+            }, 2000);  // Stop playing animation after 2 seconds
+
+            updateStatus();
+        }
+
+        function sleepPet() {
+            const petDiv = document.getElementById('pet');
+            hunger += 1;
+            happiness += 1;
+            if (hunger > 10) hunger = 10;
+            if (happiness > 10) happiness = 10;
+
+            petDiv.innerText = '😴';
+            petDiv.style.animation = ''; // Stop idle animation
+            setTimeout(() => {
+                updateStatus();
+            }, 10000);  // After 10 seconds, Whiskers wakes up
+        }
+
+        function cleanLitter() {
+            poop = false;
+            happiness += 1;
+            updateStatus();
+        }
+
+        // Decrease hunger and happiness over time
+        setInterval(function () {
+            hunger -= 1;
+            happiness -= 1;
+            updateStatus();
+        }, 60000);  // every minute
+    </script>
+</body>
+
+</html>
