@@ -1,225 +1,187 @@
-<!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whiskers the Gigapet</title>
+    <title>Whiskers the Kitty</title>
     <style>
         body {
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #2C3E50;
         }
 
-        #egg {
-            width: 220px;
-            height: 300px;
-            background-color: #f3e5ab;
-            border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+        #gameboy {
+            width: 260px;
+            height: 340px;
+            border: 5px solid #000;
+            background-color: #CFCFCF;
+            border-radius: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            margin: 30px auto;
+        }
+
+        #litterbox {
+            width: 220px;
+            height: 80px;
+            background-color: #eee;
+            background-image: radial-gradient(#ccc 15%, transparent 20%);
+            background-size: 24px 24px;
+            position: absolute;
+            bottom: 15px;
         }
 
         #pet {
             font-size: 24px;
-            animation: idleSway 3s infinite;
-        }
-
-        @keyframes idleSway {
-            0%, 100% {
-                transform: translateX(0);
-            }
-            50% {
-                transform: translateX(15px);
-            }
-        }
-
-        @keyframes concentratingShake {
-            0%, 100% {
-                transform: rotate(0);
-            }
-            25% {
-                transform: rotate(-5deg);
-            }
-            50% {
-                transform: rotate(0);
-            }
-            75% {
-                transform: rotate(5deg);
-            }
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translateY(-50%);
         }
 
         #food {
+            font-size: 24px;
             position: absolute;
-            bottom: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: none;
-            flex-direction: row;
-            gap: 5px;
-        }
-
-        .food-ball {
-            width: 8px;
-            height: 8px;
-            background-color: #654321;
-            border-radius: 50%;
-        }
-
-        button {
-            margin: 5px;
-            padding: 8px 15px;
-            font-size: 16px;
-            border: none;
-            background-color: white;
-            color: black;
-            cursor: pointer;
-        }
-
-        #poop {
-            position: absolute;
-            bottom: 10px;
+            top: 50%;
+            transform: translateY(-30%) translateX(-30px);
             display: none;
         }
 
-        @keyframes playJump {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            25%, 75% {
-                transform: translateY(-20px);
-            }
+        #poop-container {
+            position: absolute;
+            bottom: 25px;
+        }
+
+        .poop {
+            display: inline-block;
+            margin: 2px;
         }
     </style>
 </head>
 
 <body>
-    <div id="egg">
+    <div id="gameboy">
+        <div id="litterbox"></div>
+        <div id="food">•••</div>
         <div id="pet">🐱</div>
-        <div id="poop">💩</div>
-        <div id="food">
-            <div class="food-ball"></div>
-            <div class="food-ball"></div>
-            <div class="food-ball"></div>
-        </div>
+        <div id="poop-container"></div>
     </div>
-    <button onclick="feedPet()">Feed</button>
-    <button onclick="playWithPet()">Play</button>
-    <button onclick="sleepPet()">Sleep</button>
-    <button onclick="cleanLitter()">Clean</button>
-    <div id="status"></div>
+    <div>
+        <button onclick="feedPet()">Feed</button>
+        <button onclick="makePoop()">Bathroom</button>
+        <button onclick="cleanLitter()">Clean</button>
+    </div>
 
     <script>
-        let hunger = 5;
-        let happiness = 5;
-        let health = 10;
-        let poop = false;
+        let needToPoop = false;
+        let poops = 0;
+        let position = 0;  // Initial position for kitty's movement
+        let direction = 1;  // 1 for right, -1 for left
 
         function updateStatus() {
             const petDiv = document.getElementById('pet');
-            const statusDiv = document.getElementById('status');
-            const poopDiv = document.getElementById('poop');
+            const foodDiv = document.getElementById('food');
 
-            petDiv.style.animation = 'idleSway 3s infinite'; // Default idle animation
+            foodDiv.style.display = 'none';
 
-            if (hunger <= 0) {
-                petDiv.innerText = '😿';
-            } else if (happiness <= 2) {
-                petDiv.innerText = '😒'; // Bored face
-            } else if (poop && happiness <= 4) {
+            if (needToPoop) {
                 petDiv.innerText = '😾';
             } else {
                 petDiv.innerText = '🐱';
             }
 
-            if (poop) {
-                poopDiv.style.display = 'block'; // Display poop if it exists
-            } else {
-                poopDiv.style.display = 'none'; // Hide poop if it doesn't exist
-            }
-
-            statusDiv.innerHTML = `Health: ${health}<br>Hunger: ${hunger}<br>Happiness: ${happiness}`;
-
-            if (hunger <= 0 || happiness <= 0 || health <= 0) {
-                alert("Whiskers is unhappy! Please take care of him.");
-            }
+            renderPoops();
         }
 
-        function feedPet() {
+        function updatePosition() {
             const petDiv = document.getElementById('pet');
-            const foodDivs = document.querySelectorAll('.food-ball');
-            document.getElementById('food').style.display = 'flex';
-            hunger += 2;
-
-            foodDivs.forEach((food, index) => {
-                setTimeout(() => {
-                    food.style.display = 'none';
-                }, index * 500); // Makes food disappear with 0.5s intervals
-            });
-
-            setTimeout(() => {
-                document.getElementById('food').style.display = 'none';
-                foodDivs.forEach(food => food.style.display = 'block'); // Reset food for next time
-            }, 1500);
-
-            if (hunger >= 10) {
-                petDiv.innerText = '😣';  // Concentrating face
-                petDiv.style.animation = 'concentratingShake 0.2s 10';  // Concentrating shake
-
-                setTimeout(() => {
-                    poop = true;
-                    petDiv.style.animation = ''; // Remove the shake animation after poop
-                    updateStatus();
-                }, 2000);  // 2 seconds of concentrating before poop appears
-            } else {
-                updateStatus();
-            }
+            petDiv.style.left = `calc(50% + ${position}px)`;
         }
 
-        function playWithPet() {
+        async function feedPet() {
             const petDiv = document.getElementById('pet');
-            happiness += 2;
-            if (happiness > 10) happiness = 10;
+            const foodDiv = document.getElementById('food');
+            
+            // Reset food content
+            foodDiv.textContent = '•••';
+            foodDiv.style.display = 'block';
 
-            petDiv.style.animation = 'playJump 0.5s 4';
-            setTimeout(() => {
-                petDiv.style.animation = 'idleSway 3s infinite'; // Return to idle animation
-            }, 2000);  // Stop playing animation after 2 seconds
+            for (let i = 0; i < 3; i++) {
+                petDiv.innerText = '😺';
+                petDiv.style.top = 'calc(50% - 10px)';  // Move kitty up to eat
+                await new Promise(resolve => setTimeout(resolve, 500));
+                petDiv.innerText = '🐱';
+                petDiv.style.top = '50%';  // Return kitty to original position
+                foodDiv.textContent = foodDiv.textContent.slice(0, -1);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
 
+            foodDiv.style.display = 'none';
+            needToPoop = true;
             updateStatus();
         }
 
-        function sleepPet() {
+        async function poopAnimation() {
             const petDiv = document.getElementById('pet');
-            hunger += 1;
-            happiness += 1;
-            if (hunger > 10) hunger = 10;
-            if (happiness > 10) happiness = 10;
+            let shakeAmount = 2;
+            let direction = 1;
 
-            petDiv.innerText = '😴';
-            petDiv.style.animation = ''; // Stop idle animation
-            setTimeout(() => {
-                updateStatus();
-            }, 10000);  // After 10 seconds, Whiskers wakes up
+            petDiv.innerText = '😣'; // Pooping face
+
+            const shakeInterval = setInterval(() => {
+                shakeAmount += 1; // Increase shaking amount
+                petDiv.style.left = `calc(50% + ${position + (shakeAmount * direction)}px)`;
+                direction = -direction; // Switch direction
+            }, 100);
+
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Let it shake for 2 seconds
+            
+            clearInterval(shakeInterval); // Stop shaking
+            petDiv.style.left = `calc(50% + ${position}px)`; // Reset position
+
+            poops++; // Add a poop
+            needToPoop = false;
+            updateStatus();
+        }
+
+        function makePoop() {
+            poopAnimation();
+        }
+
+        function renderPoops() {
+            const poopContainer = document.getElementById('poop-container');
+            poopContainer.innerHTML = '';
+            for (let i = 0; i < poops; i++) {
+                const poopDiv = document.createElement('div');
+                poopDiv.classList.add('poop');
+                poopDiv.innerHTML = '💩';
+                poopContainer.appendChild(poopDiv);
+            }
         }
 
         function cleanLitter() {
-            poop = false;
-            happiness += 1;
+            poops = 0;
+            needToPoop = false;
             updateStatus();
         }
 
-        // Decrease hunger and happiness over time
-        setInterval(function () {
-            hunger -= 1;
-            happiness -= 1;
-            updateStatus();
-        }, 60000);  // every minute
+        function autoMove() {
+            if (position >= 80) {
+                direction = -1;
+            } else if (position <= -80) {
+                direction = 1;
+            }
+            position += 10 * direction;
+            updatePosition();
+        }
+
+        // Start the automatic movement
+        setInterval(autoMove, 1000);
     </script>
 </body>
 
